@@ -2,7 +2,7 @@ POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-    "content": "Estudiar más sobre MongoDB",
+    "content": "Creando otra nota",
     "important": true
 }
 
