@@ -1,101 +1,118 @@
-/* const http = require("http"); */
 require('dotenv').config();
+require('./mongo.js');
+const { PORT } = process.env;
+/* const Sentry = require('@sentry/node');
+require('./instrument.js'); */
 const express = require('express');
 const cors = require('cors');
-const logger = require('./loggerMiddleware.js');
-const PORT = process.env.PORT;
+const Note = require('./models/Note.js');
+const notFound = require('./middlewares/notFound.js');
+const handleErrors = require('./middlewares/handleErrors.js');
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
+app.use('/images', express.static('images'));
 
-let notes = [
-    {
-        id: 1,
-        content: 'Me tengo que suscribir a @midudev en YouTube',
-        date: '2019-05-30T17:30:31.098Z',
-        important: true,
-    },
-    {
-        id: 2,
-        content: 'Tengo que estudiar las clases del FullStack Bootcamp',
-        date: '2019-05-30T18:39:34.091Z',
-        important: false,
-    },
-    {
-        id: 3,
-        content: 'Repasar los retos de JS de midudev',
-        date: '2019-05-30T19:20:14.298Z',
-        important: true,
-    },
-    {
-        id: 4,
-        content: 'Ir a currar :(',
-        date: '2019-05-30T19:20:14.298Z',
-        important: true,
-    },
-];
+/* Sentry.init({
+    dsn: 'https://c7011a44068d21411ab6f410f7f8e580@o4509606362087424.ingest.de.sentry.io/4509606364053584',
 
-/* const app = http.createServer((request, response) => {
-  response.writeHead(200, { "content-type": "application/json" });
-  response.end(JSON.stringify(notes));
-});
- */
+    // Setting this option to true will send default PII data to Sentry.
+    // For example, automatic IP address collection on events
+    sendDefaultPii: true,
+}); */
 
 app.get('/', (req, res) => {
     res.send('<h1>Hello World</h1>');
 });
 
 app.get('/api/notes', (req, res) => {
-    res.json(notes);
+    Note.find({}).then((notes) => {
+        res.json(notes);
+    });
 });
 
-app.get('/api/notes/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const note = notes.find((note) => note.id === id);
+app.get('/api/notes/:id', (req, res, next) => {
+    const { id } = req.params;
 
-    if (note) {
-        res.json(note);
-    } else {
-        res.status(404).end();
-    }
+    Note.findById(id)
+        .then((note) => {
+            if (note) {
+                res.status(200).json(note);
+            } else {
+                res.status(404).end();
+            }
+        })
+        .catch((err) => {
+            next(err);
+        });
+});
+
+app.put('/api/notes/:id', (req, res, next) => {
+    const { id } = req.params;
+    const note = req.body;
+
+    const newNoteInfo = {
+        content: note.content,
+        important: note.important,
+    };
+    Note.findByIdAndUpdate(id, newNoteInfo, { new: true }).then((result) => {
+        res.json(result);
+    });
 });
 
 app.delete('/api/notes/:id', (req, res) => {
-    const id = Number(req.params.id);
-    notes = notes.filter((note) => note.id !== id);
+    const { id } = req.params;
+
+    Note.findByIdAndDelete(id)
+        .then((result) => {
+            console.log(
+                `Nota con id: ${result._id} ha sido borrada correctamente`
+            );
+            res.status(204).end();
+        })
+        .catch((err) => {
+            next(err);
+        });
     res.status(204).end();
 });
 
 app.post('/api/notes', (req, res) => {
     const note = req.body;
-    let paco;
 
     if (!note || !note.content) {
         return res.status(400).json({
-            error: 'note.content is missing',
+            error: 'note.content or note is missing',
         });
     }
 
-    const idNotes = notes.map((note) => note.id);
-
-    const idMax = Math.max(...idNotes);
-
-    const newNote = {
-        id: idMax + 1,
+    const newNote = new Note({
         content: note.content,
-        date: new Date().toISOString(),
-        important:
-            typeof note.important !== 'undefined' ? note.important : false,
-    };
+        date: new Date(),
+        important: note.important || false,
+    });
 
-    notes = [...notes, newNote];
-
-    res.status(201).json(newNote);
+    newNote.save().then((savedNote) => {
+        console.log(
+            `Nota con id: ${savedNote.id} ha sido creada correctamente`
+        );
+        res.status(201).json(savedNote);
+    });
 });
 
-app.use(logger);
+/* Sentry.setupExpressErrorHandler(app);
+// Optional fallthrough error handler
+app.use(function onError(err, req, res, next) {
+    // The error id is attached to `res.sentry` to be returned
+    // and optionally displayed to the user for support.
+    res.statusCode = 500;
+    res.end(res.sentry + '\n');
+}); */
 
-app.listen(PORT, () => {
+app.use(notFound);
+app.use(handleErrors);
+
+app.listen(PORT || 3001, () => {
     console.log(`Server running on ${PORT}`);
 });
