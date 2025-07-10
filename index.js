@@ -113,6 +113,8 @@ app.use(function onError(err, req, res, next) {
 app.use(notFound);
 app.use(handleErrors);
 
-app.listen(PORT || 3001, () => {
+const server = app.listen(PORT || 3001, () => {
     console.log(`Server running on ${PORT}`);
 });
+
+module.exports = { app, server };

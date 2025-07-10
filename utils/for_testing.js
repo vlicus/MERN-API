@@ -1,12 +1,15 @@
 const palindrome = (string) => {
-    return string.split('').reverse().join();
+    if (typeof string === 'undefined') return;
+    return string.split('').reverse().join('');
 };
 
 const average = (array) => {
-    let sum = 0;
-    array.forEach((num) => {
-        sum += num;
-    });
+    if (!Array.isArray(array)) return false;
+    if (array.length === 0) return 0;
+    if (!array.every((num) => typeof num === 'number' && !isNaN(num)))
+        return false;
+
+    const sum = array.reduce((acc, num) => acc + num, 0);
     return sum / array.length;
 };
 

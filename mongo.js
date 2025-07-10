@@ -1,12 +1,12 @@
 require('dotenv').config();
-const { MONGODB_PASSWORD } = process.env;
+const { MONGO_DB_URI, MONGO_DB_URI_TEST, NODE_ENV } = process.env;
 const mongoose = require('mongoose');
 
-const connectionString = `mongodb+srv://mongodb_admin:${MONGODB_PASSWORD}@cluster0.wz4lew0.mongodb.net/?retryWrites=true&w=majority`;
+const connectionString = NODE_ENV === 'test' ? MONGO_DB_URI_TEST : MONGO_DB_URI;
 
 // Creamos conexión con mongoDB
 mongoose
-    .connect(connectionString, { dbName: 'licusdb' })
+    .connect(connectionString)
     .then(() => {
         console.log('Database connected');
     })
