@@ -1,66 +1,98 @@
 const mongoose = require('mongoose');
 const { server } = require('../index.js');
-const { api, initialNotes } = require('./helper');
+const { api, initialNotes, getAllContentFromNotes } = require('./helper');
 const Note = require('../models/Note.js');
 
 beforeEach(async () => {
     await Note.deleteMany();
 
-    const note1 = new Note(initialNotes[0]);
-    await note1.save();
+    // Paralelo, no controrlamos el orden en el que se guardan las notas en la base de datos
+    /* const notesObjects = initialNotes.map((note) => new Note(note));
+    const promises = notesObjects.map((note) => note.save());
+    Promise.all(promises); */
 
-    const note2 = new Note(initialNotes[1]);
-    await note2.save();
+    // Secuencial, se guardan en orden (ver las notas helpers.js)
+    for (let note of initialNotes) {
+        const noteObject = new Note(note);
+        await noteObject.save();
+    }
 });
 
-test('notes are returned as json', async () => {
-    await api
-        .get('/api/notes')
-        .expect(200)
-        .expect('Content-Type', /application\/json/);
+describe('GET notes', () => {
+    test('notes are returned as json', async () => {
+        await api
+            .get('/api/notes')
+            .expect(200)
+            .expect('Content-Type', /application\/json/);
+    });
+
+    test('there are two notes', async () => {
+        const res = await api.get('/api/notes');
+        expect(res.body).toHaveLength(initialNotes.length);
+    });
+
+    test('the first note is about Midudev', async () => {
+        const { contents } = await getAllContentFromNotes();
+
+        expect(contents).toContain('Aprendiendo FullStack JS con el Midudev');
+    });
 });
 
-test('there are two notes', async () => {
-    const res = await api.get('/api/notes');
-    expect(res.body).toHaveLength(initialNotes.length);
+describe('POST notes', () => {
+    test('A valid note can be added', async () => {
+        const newNote = {
+            content: 'Próximamente async/await',
+            important: true,
+        };
+
+        await api
+            .post('/api/notes')
+            .send(newNote)
+            .expect(201)
+            .expect('Content-Type', /application\/json/);
+
+        const { contents, res } = await getAllContentFromNotes();
+
+        expect(res.body).toHaveLength(initialNotes.length + 1);
+        expect(contents).toContain(newNote.content);
+    });
+
+    test('Note without content can not be added', async () => {
+        const newNote = {
+            important: true,
+        };
+
+        await api.post('/api/notes').send(newNote).expect(400);
+
+        const res = await api.get('/api/notes');
+
+        expect(res.body).toHaveLength(initialNotes.length);
+    });
 });
 
-test('the first note is about Licus', async () => {
-    const res = await api.get('/api/notes');
-    const contents = res.body.map((note) => note.content);
+describe('DELETE notes', () => {
+    test('A note can be deleted', async () => {
+        const { res: firstResponse } = await getAllContentFromNotes();
+        const { body: notes } = firstResponse;
+        const noteToDelete = notes[0];
 
-    expect(contents).toContain('Aprendiendo FullStack JS con el Midudev');
-});
+        await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
 
-test('A valid note can be added', async () => {
-    const newNote = {
-        content: 'Próximamente async/await',
-        important: true,
-    };
+        const { contents, res: secondResponse } =
+            await getAllContentFromNotes();
 
-    await api
-        .post('/api/notes')
-        .send(newNote)
-        .expect(201)
-        .expect('Content-Type', /application\/json/);
+        expect(secondResponse.body).toHaveLength(initialNotes.length - 1);
 
-    const res = await api.get('/api/notes');
-    const contents = res.body.map((note) => note.content);
+        expect(contents).not.toContain(noteToDelete.content);
+    });
 
-    expect(res.body).toHaveLength(initialNotes.length + 1);
-    expect(contents).toContain(newNote.content);
-});
+    test('A note that do not exist can not be deleted', async () => {
+        await api.delete(`/api/notes/1234`).expect(400);
 
-test('Note without content can not be added', async () => {
-    const newNote = {
-        important: true,
-    };
+        const { res } = await getAllContentFromNotes();
 
-    await api.post('/api/notes').send(newNote).expect(400);
-
-    const res = await api.get('/api/notes');
-
-    expect(res.body).toHaveLength(initialNotes.length);
+        expect(res.body).toHaveLength(initialNotes.length);
+    });
 });
 
 afterAll(() => {
