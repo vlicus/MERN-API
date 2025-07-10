@@ -27,10 +27,9 @@ app.get('/', (req, res) => {
     res.send('<h1>Hello World</h1>');
 });
 
-app.get('/api/notes', (req, res) => {
-    Note.find({}).then((notes) => {
-        res.json(notes);
-    });
+app.get('/api/notes', async (req, res) => {
+    const notes = await Note.find({});
+    res.json(notes);
 });
 
 app.get('/api/notes/:id', (req, res, next) => {
@@ -62,26 +61,17 @@ app.put('/api/notes/:id', (req, res, next) => {
     });
 });
 
-app.delete('/api/notes/:id', (req, res) => {
+app.delete('/api/notes/:id', async (req, res, next) => {
     const { id } = req.params;
 
-    Note.findByIdAndDelete(id)
-        .then((result) => {
-            console.log(
-                `Nota con id: ${result._id} ha sido borrada correctamente`
-            );
-            res.status(204).end();
-        })
-        .catch((err) => {
-            next(err);
-        });
+    await Note.findByIdAndDelete(id);
     res.status(204).end();
 });
 
-app.post('/api/notes', (req, res) => {
+app.post('/api/notes', async (req, res, next) => {
     const note = req.body;
 
-    if (!note || !note.content) {
+    if (!note.content) {
         return res.status(400).json({
             error: 'note.content or note is missing',
         });
@@ -93,12 +83,19 @@ app.post('/api/notes', (req, res) => {
         important: note.important || false,
     });
 
-    newNote.save().then((savedNote) => {
+    // Guardar la nota de manera síncrona
+    /* newNote.save().then((savedNote) => {
         console.log(
             `Nota con id: ${savedNote.id} ha sido creada correctamente`
         );
         res.status(201).json(savedNote);
-    });
+    }); */
+    try {
+        const savedNote = await newNote.save();
+        res.status(201).json(savedNote);
+    } catch (error) {
+        next(error);
+    }
 });
 
 /* Sentry.setupExpressErrorHandler(app);
