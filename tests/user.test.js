@@ -2,7 +2,7 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const { server } = require('../index.js');
 const bcrypt = require('bcrypt');
-const { api } = require('./helpers');
+const { api, getUsers } = require('./helpers');
 
 describe.only('creating a new user', () => {
     beforeEach(async () => {
@@ -15,8 +15,7 @@ describe.only('creating a new user', () => {
     });
 
     test('works as expected, creating a fresh username', async () => {
-        const usersDBStart = await User.find({});
-        const usersAtStart = usersDBStart.map((user) => user.toJSON());
+        const usersAtStart = await getUsers();
 
         const newUser = {
             username: 'LicusDev',
@@ -30,8 +29,7 @@ describe.only('creating a new user', () => {
             .expect(201)
             .expect('Content-Type', /application\/json/);
 
-        const usersDBAfter = await User.find({});
-        const usersAtEnd = usersDBAfter.map((user) => user.toJSON());
+        const usersAtEnd = await getUsers();
 
         expect(usersAtEnd).toHaveLength(usersAtStart.length + 1);
 
