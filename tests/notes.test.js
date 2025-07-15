@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { server } = require('../index.js');
-const { api, initialNotes, getAllContentFromNotes } = require('./helper');
+const { api, initialNotes, getAllContentFromNotes } = require('./helpers');
 const Note = require('../models/Note.js');
 
 beforeEach(async () => {
