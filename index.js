@@ -8,6 +8,7 @@ const cors = require('cors');
 const Note = require('./models/Note.js');
 const notFound = require('./middlewares/notFound.js');
 const handleErrors = require('./middlewares/handleErrors.js');
+const usersRouter = require('./controllers/users');
 
 const app = express();
 
@@ -106,6 +107,8 @@ app.use(function onError(err, req, res, next) {
     res.statusCode = 500;
     res.end(res.sentry + '\n');
 }); */
+
+app.use('/api/users', usersRouter);
 
 app.use(notFound);
 app.use(handleErrors);
