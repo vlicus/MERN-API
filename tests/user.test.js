@@ -31,11 +31,11 @@ describe.only('creating a new user', () => {
             .expect('Content-Type', /application\/json/);
 
         const usersDBAfter = await User.find({});
-        const usersAtEnd = usersDBAfter.map((user) => user.toJSON);
+        const usersAtEnd = usersDBAfter.map((user) => user.toJSON());
 
         expect(usersAtEnd).toHaveLength(usersAtStart.length + 1);
 
-        const usernames = usersAtEnd.map((user) => user.uusername);
+        const usernames = usersAtEnd.map((user) => user.username);
         expect(usernames).toContain(newUser.username);
     });
 
