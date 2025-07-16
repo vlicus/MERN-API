@@ -2,8 +2,8 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const { server } = require('../index.js');
 const bcrypt = require('bcrypt');
-const { api } = require('../helpers/notes.js');
-const { getUsers } = require('../helpers/users.js');
+const { api } = require('../helpers/notes_helper.js');
+const { getUsers } = require('../helpers/users_helper.js');
 
 describe.only('creating a new user', () => {
     beforeEach(async () => {

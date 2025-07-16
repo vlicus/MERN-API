@@ -4,7 +4,7 @@ const {
     api,
     initialNotes,
     getAllContentFromNotes,
-} = require('../helpers/notes.js');
+} = require('../helpers/notes_helper.js');
 const Note = require('../models/Note.js');
 
 beforeEach(async () => {
