@@ -9,6 +9,7 @@ const notFound = require('./middlewares/notFound.js');
 const handleErrors = require('./middlewares/handleErrors.js');
 const usersRouter = require('./controllers/users_controller.js');
 const notesRouter = require('./controllers/notes_controller.js');
+const loginRouter = require('./controllers/login_controller.js');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/users', usersRouter);
+app.use('/api/login', loginRouter);
 app.use('/api/notes', notesRouter);
 
 app.use(notFound);

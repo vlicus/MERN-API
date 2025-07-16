@@ -13,3 +13,8 @@ mongoose
     .catch((err) => {
         console.error('Error connecting to your db', err);
     });
+
+process.on('uncaughtException', (error) => {
+    console.log(error);
+    mongoose.disconnect();
+});
