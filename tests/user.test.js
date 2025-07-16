@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const { api } = require('../helpers/notes_helper.js');
 const { getUsers } = require('../helpers/users_helper.js');
 
-describe.only('creating a new user', () => {
+describe('creating a new user', () => {
     beforeEach(async () => {
         await User.deleteMany({});
 
