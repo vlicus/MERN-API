@@ -6,9 +6,12 @@ const {
     getAllContentFromNotes,
 } = require('../helpers/notes_helper.js');
 const Note = require('../models/Note.js');
+const User = require('../models/User.js');
+const bcrypt = require('bcrypt');
 
 beforeEach(async () => {
-    await Note.deleteMany();
+    await User.deleteMany({});
+    await Note.deleteMany({});
 
     // Paralelo, no controrlamos el orden en el que se guardan las notas en la base de datos
     /* const notesObjects = initialNotes.map((note) => new Note(note));
@@ -44,9 +47,20 @@ describe('GET notes', () => {
 
 describe('POST notes', () => {
     test('A valid note can be added', async () => {
+        const passwordHash = await bcrypt.hash('sekret', 10);
+
+        const user = new User({
+            username: 'testuser',
+            name: 'Test Name',
+            passwordHash,
+        });
+
+        const savedUser = await user.save();
+
         const newNote = {
             content: 'Próximamente async/await',
             important: true,
+            userId: savedUser._id,
         };
 
         await api
