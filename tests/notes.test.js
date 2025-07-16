@@ -15,7 +15,7 @@ beforeEach(async () => {
     const promises = notesObjects.map((note) => note.save());
     Promise.all(promises); */
 
-    // Secuencial, se guardan en orden (ver las notas helpers.js)
+    // Secuencial, se guardan en orden (ver las notas helpers/notes.js)
     for (let note of initialNotes) {
         const noteObject = new Note(note);
         await noteObject.save();
