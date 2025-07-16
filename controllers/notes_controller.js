@@ -1,5 +1,6 @@
 const notesRouter = require('express').Router();
 const Note = require('../models/Note');
+const User = require('../models/User');
 
 // GET
 
@@ -53,22 +54,31 @@ notesRouter.delete('/:id', async (req, res, next) => {
 // POST
 
 notesRouter.post('/', async (req, res, next) => {
-    const note = req.body;
+    const { content, important = false, userId } = req.body;
 
-    if (!note.content) {
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(400).json({ error: 'User not found' });
+    }
+    if (!content) {
         return res.status(400).json({
             error: 'note.content or note is missing',
         });
     }
 
     const newNote = new Note({
-        content: note.content,
+        content,
         date: new Date(),
-        important: note.important || false,
+        important,
+        user: user._id,
     });
 
     try {
         const savedNote = await newNote.save();
+
+        user.notes = user.notes.concat(savedNote._id);
+        await user.save();
+
         res.status(201).json(savedNote);
     } catch (error) {
         next(error);

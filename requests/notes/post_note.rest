@@ -2,8 +2,9 @@ POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-    "content": "Creando otra nota",
-    "important": true
+    "content": "Creando nota con usuario asignado",
+    "important": true,
+    "userId": "6877df6c9f6c7a56e95f4e16"
 }
 
 ###
@@ -12,7 +13,8 @@ POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-    "content": "Estudiar más sobre MongoDB"
+    "content": "Estudiar más sobre MongoDB",
+    "userId": "6876655439f951485dd6a1d3"
 }
 
 
@@ -23,5 +25,6 @@ Content-Type: application/json
 
 {
     "no-content-error": "Estudiar más sobre MongoDB",
-    "important": true
+    "important": true,
+    "userId": "6876655439f951485dd6a1d3"
 }
