@@ -1,15 +1,15 @@
 require('dotenv').config();
 require('./mongo.js');
 const { PORT } = process.env;
-/* const Sentry = require('@sentry/node');
-require('./instrument.js'); */
 const express = require('express');
 const cors = require('cors');
 const notFound = require('./middlewares/notFound.js');
 const handleErrors = require('./middlewares/handleErrors.js');
 const usersRouter = require('./controllers/users_controller.js');
+const getNotesRouter = require('./controllers/get_notes_controller.js');
 const notesRouter = require('./controllers/notes_controller.js');
 const loginRouter = require('./controllers/login_controller.js');
+const userExtractor = require('./middlewares/userExtractor.js');
 
 const app = express();
 
@@ -24,7 +24,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
-app.use('/api/notes', notesRouter);
+app.use('/api/notes', getNotesRouter);
+app.use('/api/notes', userExtractor, notesRouter);
 
 app.use(notFound);
 app.use(handleErrors);

@@ -4,7 +4,17 @@ Content-Type: application/json
 {
     "content": "Creando nota con usuario asignado",
     "important": true,
-    "userId": "6877df6c9f6c7a56e95f4e16"
+    "userId": "6877eabe385697497ad77ec5"
+}
+
+###
+POST http://localhost:3001/api/notes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzdlYWJlMzg1Njk3NDk3YWQ3N2VjNSIsInVzZXJuYW1lIjoiTGljdXN2MiIsImlhdCI6MTc1Mjg1NTIwOCwiZXhwIjoxNzU1NDQ3MjA4fQ.G2sTw8PaG6Oe_wpxKhRLfsyX_31gvFGkwAAAv5WIS_M
+
+{
+    "content": "Creando nota con token de usuario con la id sacándola de la información que devolvemos con el token",
+    "important": true
 }
 
 ###
