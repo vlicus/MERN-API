@@ -8,10 +8,31 @@ const {
 const Note = require('../models/Note.js');
 const User = require('../models/User.js');
 const bcrypt = require('bcrypt');
+const supertest = require('supertest');
+
+let token = '';
 
 beforeEach(async () => {
     await User.deleteMany({});
     await Note.deleteMany({});
+
+    // Creamos un usuario y lo logueamos para el test
+
+    const passwordHash = await bcrypt.hash('testpassword', 10);
+    const user = new User({
+        username: 'testuser',
+        name: 'Test User',
+        passwordHash,
+    });
+    await user.save();
+
+    //Logueamos el test user
+
+    const loginResponse = await api
+        .post('/api/login')
+        .send({ username: 'testuser', password: 'testpassword' });
+
+    token = loginResponse.body.token;
 
     // Paralelo, no controrlamos el orden en el que se guardan las notas en la base de datos
     /* const notesObjects = initialNotes.map((note) => new Note(note));
@@ -19,6 +40,7 @@ beforeEach(async () => {
     Promise.all(promises); */
 
     // Secuencial, se guardan en orden (ver las notas helpers/notes.js)
+
     for (let note of initialNotes) {
         const noteObject = new Note(note);
         await noteObject.save();
@@ -65,6 +87,7 @@ describe('POST notes', () => {
 
         await api
             .post('/api/notes')
+            .set('Authorization', `Bearer ${token}`)
             .send(newNote)
             .expect(201)
             .expect('Content-Type', /application\/json/);
@@ -80,7 +103,11 @@ describe('POST notes', () => {
             important: true,
         };
 
-        await api.post('/api/notes').send(newNote).expect(400);
+        await api
+            .post('/api/notes')
+            .set('Authorization', `Bearer ${token}`)
+            .send(newNote)
+            .expect(400);
 
         const res = await api.get('/api/notes');
 
@@ -94,7 +121,10 @@ describe('DELETE notes', () => {
         const { body: notes } = firstResponse;
         const noteToDelete = notes[0];
 
-        await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
+        await api
+            .delete(`/api/notes/${noteToDelete.id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(204);
 
         const { contents, res: secondResponse } =
             await getAllContentFromNotes();
@@ -105,7 +135,10 @@ describe('DELETE notes', () => {
     });
 
     test('A note that do not exist can not be deleted', async () => {
-        await api.delete(`/api/notes/1234`).expect(400);
+        await api
+            .delete(`/api/notes/1234`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(400);
 
         const { res } = await getAllContentFromNotes();
 
