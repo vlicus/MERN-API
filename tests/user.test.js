@@ -1,20 +1,21 @@
 const User = require('../models/User');
+const Note = require('../models/Note.js');
 const mongoose = require('mongoose');
 const { server } = require('../index.js');
 const bcrypt = require('bcrypt');
 const { api } = require('../helpers/notes_helper.js');
 const { getUsers } = require('../helpers/users_helper.js');
 
+beforeEach(async () => {
+    await User.deleteMany({});
+    await Note.deleteMany({});
+    const passwordHash = await bcrypt.hash('password', 10);
+    const user = new User({ username: 'Licusroot', passwordHash });
+
+    await user.save();
+});
+
 describe('creating a new user', () => {
-    beforeEach(async () => {
-        await User.deleteMany({});
-
-        const passwordHash = await bcrypt.hash('password', 10);
-        const user = new User({ username: 'Licusroot', passwordHash });
-
-        await user.save();
-    });
-
     test('works as expected, creating a fresh username', async () => {
         const usersAtStart = await getUsers();
 

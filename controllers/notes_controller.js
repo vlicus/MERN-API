@@ -1,7 +1,42 @@
 const notesRouter = require('express').Router();
+const userExtractor = require('../middlewares/userExtractor');
 const Note = require('../models/Note');
 const User = require('../models/User');
 
+// Public routes
+
+// GET
+
+// All notes
+notesRouter.get('/', async (req, res) => {
+    const notes = await Note.find({}).populate('user', {
+        username: 1,
+        name: 1,
+    });
+    res.json(notes);
+});
+
+// Single note by id
+notesRouter.get('/:id', async (req, res, next) => {
+    const { id } = req.params;
+
+    await Note.findById(id)
+        .then((note) => {
+            if (note) {
+                res.status(200).json(note);
+            } else {
+                res.status(404).end();
+            }
+        })
+        .catch((err) => {
+            next(err);
+        });
+});
+
+// Private routes (require token from id):
+
+// Apply middleware only to the routes below:
+notesRouter.use(userExtractor);
 // PUT
 
 notesRouter.put('/:id', async (req, res, next) => {

@@ -8,7 +8,7 @@ const {
 const Note = require('../models/Note.js');
 const User = require('../models/User.js');
 const bcrypt = require('bcrypt');
-const supertest = require('supertest');
+const { getTokenFromLogin } = require('../helpers/users_helper.js');
 
 let token = '';
 
@@ -18,21 +18,23 @@ beforeEach(async () => {
 
     // Creamos un usuario y lo logueamos para el test
 
-    const passwordHash = await bcrypt.hash('testpassword', 10);
+    /* const passwordHash = await bcrypt.hash('testpassword', 10);
     const user = new User({
-        username: 'testuser',
+        username: 'testuser_notes',
         name: 'Test User',
         passwordHash,
     });
-    await user.save();
+    await user.save(); */
+
+    await api.post('/api/users').send({
+        username: 'testuser_notes',
+        name: 'Note Tester',
+        password: 'testpassword_notes',
+    });
 
     //Logueamos el test user
 
-    const loginResponse = await api
-        .post('/api/login')
-        .send({ username: 'testuser', password: 'testpassword' });
-
-    token = loginResponse.body.token;
+    token = await getTokenFromLogin('testuser_notes', 'testpassword_notes');
 
     // Paralelo, no controrlamos el orden en el que se guardan las notas en la base de datos
     /* const notesObjects = initialNotes.map((note) => new Note(note));
